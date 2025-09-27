@@ -23,7 +23,9 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
+    # Field to track setup completion
+    setup_complete = db.Column(db.Boolean, default=False, nullable=False)
+    
     conversations = db.relationship('Conversation', backref='user', lazy=True)
     projects = db.relationship('Project', backref='user', lazy=True)
     
