@@ -538,7 +538,7 @@ class WoolyChatLauncher:
             model_var = tk.StringVar(value="gemma2:9b")
             
             models = [
-                ("gemma2:9b", "Overall/best all-around (5.4 GB)", "Recommended for most users"),
+                ("gemma3:4b", "Overall/best all-around (3.3 GB)", "Recommended for most users"),
                 ("llama3.2:3b", "Lightweight general tasks (2.0 GB)", "Cannot analyze images"),
                 ("deepseek-r1:7b", "Strong reasoning with CoT (4.7 GB)", "Cannot analyze images")
             ]
