@@ -1,6 +1,10 @@
 # WoolyChat - Ollama Chat Interface with File Attachments
 
-A modern, feature-rich web interface for interacting with Ollama models, built with Flask and vanilla JavaScript. Supports multimodal conversations with file attachments, theme customization, and persistent conversation history.
+A contemporary web interface for interacting with Ollama models, built with Flask and vanilla JavaScript. Supports multimodal conversations with file attachments, theme customization, and persistent conversation history.
+
+I am planning to add things like Projects, Project Knowledge, folders, and unstructured tagging, but who knows when that'll happen. I only went down this rabbit hole because Open WebUI stopped letting me login locally and I didn't get why I needed an account with them in the first place.
+
+![WoolyChat Screenshot](img/woolychat.png)
 
 ## Releases
 
