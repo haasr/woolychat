@@ -261,3 +261,5 @@ python ollama_chat.py
 2. Select theme from dropdown
 3. Preview changes in real-time
 4. Save to persist across sessions
+
+WoolyChat - It's not Open WebUI, but it's not Open WebUI 🐑✨
