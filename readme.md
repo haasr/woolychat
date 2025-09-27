@@ -213,7 +213,7 @@ THEMES = {
 ### Installation and Deployment
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/haasr/woolychat.git
 cd woolychat
 
 # Create virtual environment
