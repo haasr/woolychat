@@ -194,7 +194,6 @@ THEMES = {
 - **File Size Limits** - 5MB upload restriction
 - **Secure Filenames** - UUID-based storage to prevent conflicts
 - **Input Sanitization** - HTML escaping for user messages
-- **Error Handling** - Comprehensive error catching and user feedback
 
 ## 📱 Responsive Design
 
