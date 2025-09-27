@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Ollama Chat Interface{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+
+{% block content %}
+    <!-- Sidebar for conversations -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Conversations</h2>
+            <button class="new-conversation-btn" id="newConversationBtn" title="New Conversation">+</button>
+        </div>
+        
+        <div class="sidebar-content">
+            <div class="conversations-list" id="conversationsList">
+                <!-- Conversations will be loaded here -->
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <button class="toggle-sidebar" id="toggleSidebar">‹</button>
+            <button class="app-settings" id="appSettings">⚙</button>
+        </div>
+    </div>
+
+    <!-- Toggle button for when sidebar is collapsed -->
+    <div class="sidebar-toggle-collapsed" id="sidebarToggleCollapsed">
+        <button class="toggle-sidebar-collapsed-btn" id="toggleSidebarCollapsedBtn" title="Show conversations">›</button>
+    </div>
+
+    <!-- Main chat area -->
+    <div class="chat-container">
+        <!-- Mobile hamburger menu button -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+        
+        <!-- Mobile overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
+        <div class="chat-header">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <h1>WoolyChat<img src="{{ url_for('static', filename='img/woolychat.png') }}" alt="WoolyChat llama logo" width="80">
+            </h1>
+            <div class="model-selector">
+                <select id="modelSelect">
+                    <option value="">Select a model...</option>
+                </select>
+                <button class="refresh-models" id="refreshModels" title="Refresh models">⟳</button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+                <div class="message-content">
+                    Hello! I'm ready to help you. Select a model and start a new conversation.
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span>Assistant is typing</span>
+            <div class="typing-dots">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="attachments-preview" id="attachmentsPreview" style="display: none;">
+                <div class="attachments-header">
+                    <span>Attached Files:</span>
+                    <button class="clear-attachments" id="clearAttachments" title="Clear all attachments">✕</button>
+                </div>
+                <div class="attachments-list" id="attachmentsList">
+                    <!-- Attachment items will be inserted here -->
+                </div>
+            </div>
+    
+            <form class="chat-input-form" id="chatForm">
+                <div class="input-row">
+                    <textarea 
+                        class="chat-input" 
+                        id="messageInput" 
+                        placeholder="Type your message here..." 
+                        rows="3"
+                    ></textarea>
+                    <div style="display: grid; grid-template-columns: 1fr;">
+                    <!-- File attachment button -->
+                    <button type="button" class="attach-file-btn" id="attachFileBtn" title="Attach file">📎</button>
+                    
+                    <!-- Hidden file input -->
+                    <input type="file" id="fileInput" style="display: none;" 
+                        accept=".txt,.pdf,.doc,.docx,.md,.rtf,.jpg,.jpeg,.png,.gif,.bmp,.webp,.csv,.xlsx,.xls,.json,.xml,.html,.htm">
+                    
+                    <button type="submit" class="send-button" id="sendButton" title="Send" disabled>⌲</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-modal-overlay"></div>
+        <div class="settings-modal-content">
+            <div class="settings-header">
+                <h2>Settings</h2>
+                <button class="close-settings" id="closeSettings">✕</button>
+            </div>
+            
+            <div class="settings-body">
+                <div class="settings-section">
+                    <h3>Appearance</h3>
+                    <div class="setting-item">
+                        <label for="themeSelect">Theme:</label>
+                        <select id="themeSelect" class="theme-select">
+                            <option value="autumn">Autumn</option>
+                            <option value="cyberpunk">Cyberpunk</option>
+                            <option value="forest">Forest</option>
+                            <option value="golden">Golden</option>
+                            <option value="koala">Koala</option>
+                            <option value="midnight">Midnight</option>
+                            <option value="moonlit_lilac">Moonlit Lilac</option>
+                            <option value="ocean_breeze">Ocean Breeze</option>
+                            <option value="pink">Pink</option>
+                            <option value="ryan">Ryan</option>
+                            <option value="summer_sunset">Summer Sunset</option>
+                            <option value="vinyl">Vinyl</option>
+                            <option value="zebra">Zebra</option>
+                        </select>
+                    </div>
+                    
+                    <div class="theme-preview" id="themePreview">
+                        <div class="preview-header">Header</div>
+                        <div class="preview-gradient">Background</div>
+                    </div>
+                </div>
+                
+                <!-- Future settings sections can go here -->
+                <div class="settings-section">
+                    <h3>Chat</h3>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="markdownEnabled" checked>
+                            Enable Markdown Rendering
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="autoScrollEnabled" checked>
+                            Auto-scroll to Latest Message
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-footer">
+                <button class="settings-btn secondary" id="resetSettings">Reset to Defaults</button>
+                <button class="settings-btn primary" id="saveSettings">Save Changes</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
+{% endblock %}
