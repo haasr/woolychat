@@ -12,6 +12,21 @@ flask_imports = collect_submodules('flask')
 sqlalchemy_imports = collect_submodules('sqlalchemy')
 flask_sqlalchemy_imports = collect_submodules('flask_sqlalchemy')
 
+# Collect document processing library submodules
+try:
+    pypdf2_imports = collect_submodules('PyPDF2')
+    print(f"📄 Collected {len(pypdf2_imports)} PyPDF2 submodules")
+except:
+    pypdf2_imports = []
+    print("⚠️ PyPDF2 not found for collection")
+
+try:
+    docx_imports = collect_submodules('docx')
+    print(f"📄 Collected {len(docx_imports)} python-docx submodules")
+except:
+    docx_imports = []
+    print("⚠️ python-docx not found for collection")
+
 # Get all standard library modules
 try:
     import stdlib_list
@@ -49,13 +64,35 @@ a = Analysis(
         'werkzeug',
         'jinja2',
         'requests',
+        
+        # Document processing libraries with correct names
         'PyPDF2',
-        'docx',
+        'PyPDF2.pdf',
+        'PyPDF2.generic',
+        'PyPDF2.utils',
+        'PyPDF2.filters',
+        'PyPDF2.pagerange',
+        'docx',  # This is python-docx
+        'docx.document',
+        'docx.shared',
+        'docx.oxml',
+        'docx.oxml.ns',
+        'docx.oxml.parser',
+        'docx.parts',
+        'docx.parts.document',
+        'docx.text',
+        'docx.text.paragraph',
+        'docx.text.run',
+        'lxml',  # Required by python-docx
+        'lxml.etree',
+        'lxml.html',
         
         # Include their submodules
         *flask_imports,
         *sqlalchemy_imports, 
         *flask_sqlalchemy_imports,
+        *pypdf2_imports,
+        *docx_imports,
         
         # Key standard library modules (only the ones we know we need)
         'calendar', 'datetime', 'json', 'os', 'sys', 'time', 'threading',
@@ -79,10 +116,6 @@ a = Analysis(
         'requests.auth',
         'requests.packages.urllib3',
         'urllib3.util.retry',
-        'PyPDF2.pdf',
-        'docx.document',
-        'docx.shared',
-        'docx.oxml',
         'werkzeug.security',
         'werkzeug.serving',
         'werkzeug.routing',
