@@ -57,7 +57,7 @@ class WoolyChatLauncher:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("WoolyChat v0.4 Launcher")
-        self.root.geometry("600x560")
+        self.root.geometry("600x600")
         self.root.resizable(False, False)
         
         # State management
@@ -535,12 +535,12 @@ class WoolyChatLauncher:
             ).pack(pady=10)
             
             # Model options
-            model_var = tk.StringVar(value="gemma2:9b")
-            
+            model_var = tk.StringVar(value="gemma3:4b")
+
             models = [
                 ("gemma3:4b", "Overall/best all-around (3.3 GB)", "Recommended for most users"),
                 ("llama3.2:3b", "Lightweight general tasks (2.0 GB)", "Cannot analyze images"),
-                ("deepseek-r1:7b", "Strong reasoning with CoT (4.7 GB)", "Cannot analyze images")
+                ("granite3.3:8b", "Strong instruction-following (4.9 GB)", "Cannot analyze images")
             ]
             
             for model_name, description, note in models:
