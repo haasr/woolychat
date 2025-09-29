@@ -13,6 +13,7 @@ import re
 import os
 import sys
 import time
+import platform
 from pathlib import Path
 
 # Import your existing modules
@@ -361,28 +362,47 @@ class WoolyChatLauncher:
     
     def find_ollama_path(self):
         """Find the Ollama executable in common installation locations"""
-        common_paths = [
-            '/usr/local/bin/ollama',  # Homebrew default
-            '/opt/homebrew/bin/ollama',  # Apple Silicon Homebrew
-            '/usr/bin/ollama',  # System installation
-            os.path.expanduser('~/.local/bin/ollama'),  # User installation
-            '/Applications/Ollama.app/Contents/Resources/ollama',  # Official installer
-        ]
+        system = platform.system()
         
-        # First try the system PATH
-        try:
-            result = subprocess.run(['which', 'ollama'], capture_output=True, text=True, timeout=5)
-            if result.returncode == 0:
-                ollama_path = result.stdout.strip()
-                if os.path.exists(ollama_path):
-                    return ollama_path
-        except:
-            pass
-        
-        # Then check common locations
-        for path in common_paths:
-            if os.path.exists(path):
-                return path
+        if system == "Darwin":  # macOS
+            common_paths = [
+                '/usr/local/bin/ollama',  # Homebrew default
+                '/opt/homebrew/bin/ollama',  # Apple Silicon Homebrew
+                '/usr/bin/ollama',  # System installation
+                os.path.expanduser('~/.local/bin/ollama'),  # User installation
+                '/Applications/Ollama.app/Contents/Resources/ollama',  # Official installer
+            ]
+            
+            # First try the system PATH using 'which'
+            try:
+                result = subprocess.run(['which', 'ollama'], capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    ollama_path = result.stdout.strip()
+                    if os.path.exists(ollama_path):
+                        return ollama_path
+            except:
+                pass
+            
+            # Then check common macOS locations
+            for path in common_paths:
+                if os.path.exists(path):
+                    return path
+                    
+        elif system == "Windows":
+            # For Windows, use the specific installation path
+            windows_ollama_path = r"C:\Users\haasrr\AppData\Local\Programs\Ollama\ollama.exe"
+            if os.path.exists(windows_ollama_path):
+                return windows_ollama_path
+            
+            # Alternatively, try to use 'where' command (Windows equivalent of 'which')
+            try:
+                result = subprocess.run(['where', 'ollama'], capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    ollama_path = result.stdout.strip().split('\n')[0]  # Get first result
+                    if os.path.exists(ollama_path):
+                        return ollama_path
+            except:
+                pass
         
         return None
     

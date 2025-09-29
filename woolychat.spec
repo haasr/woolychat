@@ -164,7 +164,7 @@ a = Analysis(
         'wheel',
         'pkg_resources',
         'jaraco',
-        'importlib_metadata',
+        #'importlib_metadata', # Needed on Windows
         'zipp',
         'more_itertools',
         
