@@ -1,4 +1,6 @@
 __pycache__/
+build/
+dist/
 instance/
 uploads/
 .DS_Store
