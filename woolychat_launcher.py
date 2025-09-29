@@ -389,8 +389,12 @@ class WoolyChatLauncher:
                     return path
                     
         elif system == "Windows":
-            # For Windows, use the specific installation path
-            windows_ollama_path = r"C:\Users\haasrr\AppData\Local\Programs\Ollama\ollama.exe"
+         # For Windows, use the standard installation path
+            windows_ollama_path = os.path.join(
+                os.path.expanduser("~"),
+                "AppData", "Local", "Programs", "Ollama", "ollama.exe"
+            )
+            
             if os.path.exists(windows_ollama_path):
                 return windows_ollama_path
             
