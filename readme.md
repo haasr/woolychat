@@ -8,7 +8,7 @@ I am planning to add things like Projects, Project Knowledge, folders, and unstr
 
 ## Releases
 
-MacOS .app available. Windows .exe coming soon.
+Available as Mac and Windows apps:
 [Releases](https://github.com/haasr/woolychat_releases)
 
 ## 🌟 Key Features
