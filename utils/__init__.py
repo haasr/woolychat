@@ -5,6 +5,7 @@ Utility modules for WoolyChat application
 from .file_manager import FileManager
 from .conversation_manager import ConversationManager
 from .text_extractor import TextExtractor
+from .artifact_parser import *
 
 import socket
 
@@ -33,4 +34,12 @@ def get_available_port(start_port):
         # The port is in use. Try the next port by incrementing start_port
         return get_available_port(start_port + 1)
 
-__all__ = ['FileManager', 'ConversationManager', 'TextExtractor', 'get_available_port']
+__all__ = [
+    'FileManager',
+    'ConversationManager',
+    'TextExtractor',
+    'TextTag',
+    'ArtifactTag',
+    'ArtifactParser',
+    'get_available_port'
+]
