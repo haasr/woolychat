@@ -6,6 +6,7 @@ from .file_manager import FileManager
 from .conversation_manager import ConversationManager
 from .text_extractor import TextExtractor
 from .artifact_parser import *
+from .themes import Themes
 
 import socket
 
@@ -38,8 +39,10 @@ __all__ = [
     'FileManager',
     'ConversationManager',
     'TextExtractor',
+    'ARTIFACT_SYSTEM_PROMPT',
     'TextTag',
     'ArtifactTag',
     'ArtifactParser',
+    'Themes',
     'get_available_port'
 ]

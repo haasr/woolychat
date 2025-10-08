@@ -2,8 +2,12 @@ import os
 import uuid
 import mimetypes
 import math
+import base64
+
 from werkzeug.utils import secure_filename
+from werkzeug.datastructures.file_storage import FileStorage
 from models import db, MessageAttachment
+from .text_extractor import TextExtractor
 
 class FileManager:
     """Handles file upload, validation, and storage operations"""
@@ -154,6 +158,78 @@ class FileManager:
             print(f"Error saving attachments: {e}")
             db.session.rollback()
             return []
+        
+    def process_message_attachements(self, attachments: list) -> tuple[str, list]:
+        file_context = "\n\n--- ATTACHED FILES ---\n"
+        images_base64 = []
+        
+        for attachment in attachments:
+            file_path = attachment.get('file_path')
+            mime_type = attachment.get('mime_type')
+            original_filename = attachment.get('original_filename')
+            
+            if file_path and os.path.exists(file_path):
+                if mime_type.startswith('image/'):
+                    # Convert image to base64 for Ollama
+                    try:
+                        with open(file_path, 'rb') as img_file:
+                            img_data = img_file.read()
+                            img_base64 = base64.b64encode(img_data).decode('utf-8')
+                            images_base64.append(img_base64)
+                    except Exception as e:
+                        print(f"Error encoding image {file_path}: {e}")
+                else:
+                    # For non-image files, extract text content
+                    extracted_text = TextExtractor.extract_text(file_path, mime_type)
+                    if extracted_text:
+                        file_context += f"\nFile: {original_filename}\n"
+                        file_context += f"Type: {mime_type}\n"
+                        truncated_text = TextExtractor.truncate_text(extracted_text, max_chars=4000)
+                        file_context += f"Content:\n{truncated_text}\n---\n"
+        
+        if not "File:" in file_context:
+            file_context = '' # Return empty string
+
+        return file_context, images_base64
+    
+    def try_save_file(self, file: FileStorage) -> tuple[bool, str, dict]:
+        file_info = dict()
+        # Get file info
+        original_filename = file.filename
+        
+        # Read file to get size
+        file_content = file.read()
+        file_size = len(file_content)
+        file.seek(0)  # Reset file pointer
+        
+        # Get MIME type
+        mime_type = self.get_mime_type(original_filename)
+        
+        # Validate file
+        is_valid, error_message = self.validate_file(original_filename, mime_type, file_size)
+        
+        # Generate unique filename and save
+        unique_filename = self.generate_unique_filename(original_filename)
+        file_path = self.save_file(file, unique_filename)
+        
+        # Extract text content
+        extracted_text = TextExtractor.extract_text(file_path, mime_type)
+        
+        # Return file info
+        file_info = {
+            'id': unique_filename,
+            'original_filename': original_filename,
+            'filename': unique_filename,
+            'file_size': file_size,
+            'file_size_str': self.format_file_size(file_size),
+            'mime_type': mime_type,
+            'file_path': file_path,
+            'has_text': bool(extracted_text),
+            'text_preview': extracted_text[:200] + '...' if extracted_text and len(extracted_text) > 200 else extracted_text,
+            'extracted_text': extracted_text
+        }
+
+        return is_valid, error_message, file_info
     
     @staticmethod
     def format_file_size(bytes_size):

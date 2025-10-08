@@ -139,6 +139,9 @@ class Message(db.Model):
     
     attachments = db.relationship('MessageAttachment', backref='message', lazy=True, 
                             cascade='all, delete-orphan')
+    
+    has_artifacts = db.Column(db.Boolean, default=False)
+    artifacts_data = db.Column(db.JSON)  # Store artifact metadata
 
     # Optional metadata
     message_metadata = db.Column(JSON, default=dict)  # For storing extra info like tokens, processing time, etc.

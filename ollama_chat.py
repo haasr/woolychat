@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, jsonify, Response, send_from_directory, session
-import base64
 import json
 import os
 import requests
@@ -37,93 +36,9 @@ def create_app():
     # Initialize utilities
     file_manager = FileManager(app.config['UPLOAD_FOLDER'], app.config['MAX_CONTENT_LENGTH'])
 
-    # Theme definitions (same as before)
-    THEMES = {
-        'ocean_breeze': {
-            'header_gradient_left': '#72dddd',
-            'header_gradient_right': '#86c3f9',
-            'bg_gradient_left': '#60c1e7',
-            'bg_gradient_right': '#7fc9e2'
-        },
-        'golden': {
-            'header_gradient_left': '#e9a508',
-            'header_gradient_right': '#ffcb46',
-            'bg_gradient_left': '#1362b1',
-            'bg_gradient_right': '#52a1ef'
-        },
-        'autumn': {
-            'header_gradient_left': '#cd5a08',
-            'header_gradient_right': '#f98a3a',
-            'bg_gradient_left': '#703d39',
-            'bg_gradient_right': '#a13670'
-        },
-        'midnight': {
-            'header_gradient_left': '#283593',
-            'header_gradient_right': '#3a0080',
-            'bg_gradient_left': '#10105c',
-            'bg_gradient_right': '#2d2d8a'
-        },
-        'cyberpunk': {
-            'header_gradient_left': '#9c27b0',
-            'header_gradient_right': '#e91e63',
-            'bg_gradient_left': '#16a0a0',
-            'bg_gradient_right': '#494949'
-        },
-        'vinyl': {
-            'header_gradient_left': '#b71c1c',
-            'header_gradient_right': '#cc0000',
-            'bg_gradient_left': '#333333',
-            'bg_gradient_right': '#444444'
-        },
-        'koala': {
-            'header_gradient_left': '#8d9db6',
-            'header_gradient_right': '#a8b5c8',
-            'bg_gradient_left': '#7d8471',
-            'bg_gradient_right': '#9db4a0'
-        },
-        'pink': {
-            'header_gradient_left': '#FF69B4',
-            'header_gradient_right': '#FF81A6',
-            'bg_gradient_left': '#F48FB1',
-            'bg_gradient_right': '#E9967A'
-        },
-        'forest': {
-            'header_gradient_left': '#3a8673',
-            'header_gradient_right': '#2d6a4f',
-            'bg_gradient_left': '#2d6a4f',
-            'bg_gradient_right': '#3a8658'
-        },
-        'moonlit_lilac': {
-            'header_gradient_left': '#667eea',
-            'header_gradient_right': '#764ba2',
-            'bg_gradient_left': '#1e3a8a',
-            'bg_gradient_right': '#294a8b'
-        },
-        'summer_sunset': {
-            'header_gradient_left': '#e9c46a',
-            'header_gradient_right': '#f4a261',
-            'bg_gradient_left': "#f16236",
-            'bg_gradient_right': "#ee952f"
-        },
-        'ryan': {
-            'header_gradient_left': "#e3b84b",
-            'header_gradient_right': "#e6bd57",
-            'bg_gradient_left': "#37764a",
-            'bg_gradient_right': "#0c9186"
-        },
-        'zebra': {
-            'header_gradient_left': '#212121',
-            'header_gradient_right': '#24293b',
-            'bg_gradient_left': '#1e2936',
-            'bg_gradient_right': '#28303f'
-        }
-    }
-
-    DEFAULT_THEME = 'zebra'
-
     def get_theme_css_vars(theme_name):
         """Generate CSS custom properties for a theme"""
-        theme = THEMES.get(theme_name, THEMES[DEFAULT_THEME])
+        theme = Themes.get_theme(key=theme_name)
         return f"""
             --header-gradient-left: {theme['header_gradient_left']};
             --header-gradient-right: {theme['header_gradient_right']};
@@ -138,11 +53,11 @@ def create_app():
     @app.context_processor
     def inject_theme():
         """Inject theme variables into all templates"""
-        current_theme = session.get('theme', DEFAULT_THEME)
+        current_theme = session.get('theme', Themes.get_default_theme_name())
         return {
             'accent_theme_colors': get_theme_css_vars(current_theme),
             'current_theme': current_theme,
-            'available_themes': THEMES.keys()
+            'available_themes': Themes.get_theme_keys(),
         }
 
     # ==== MAIN ROUTES ====
@@ -172,6 +87,7 @@ def create_app():
             history = data.get('history', [])
             conversation_id = data.get('conversation_id')
             attachments = data.get('attachments', [])
+            use_artifact = data.get('use_artifact', False)
             
             print(f"Chat request: model={model}, message_len={len(message) if message else 0}, "
                   f"history_len={len(history)}, conv_id={conversation_id}, attachments={len(attachments)}")
@@ -181,36 +97,12 @@ def create_app():
             text_content = message
             
             if attachments:
-                file_context = "\n\n--- ATTACHED FILES ---\n"
-                
-                for attachment in attachments:
-                    file_path = attachment.get('file_path')
-                    mime_type = attachment.get('mime_type')
-                    original_filename = attachment.get('original_filename')
-                    
-                    if file_path and os.path.exists(file_path):
-                        if mime_type.startswith('image/'):
-                            # Convert image to base64 for Ollama
-                            try:
-                                with open(file_path, 'rb') as img_file:
-                                    img_data = img_file.read()
-                                    img_base64 = base64.b64encode(img_data).decode('utf-8')
-                                    images_base64.append(img_base64)
-                            except Exception as e:
-                                print(f"Error encoding image {file_path}: {e}")
-                        else:
-                            # For non-image files, extract text content
-                            extracted_text = TextExtractor.extract_text(file_path, mime_type)
-                            if extracted_text:
-                                file_context += f"\nFile: {original_filename}\n"
-                                file_context += f"Type: {mime_type}\n"
-                                truncated_text = TextExtractor.truncate_text(extracted_text, max_chars=4000)
-                                file_context += f"Content:\n{truncated_text}\n---\n"
-                
-                # Add file context only if there were non-image files
-                if "File:" in file_context:
-                    text_content = f"{message}{file_context}"
+                file_context, images_base64 = file_manager.process_message_attachements(attachments)
+                text_content = f"{message}{file_context}"
             
+            if use_artifact:
+                 text_content = ARTIFACT_SYSTEM_PROMPT + "\n\n" + text_content
+
             # Build the user message for Ollama
             user_message = {'role': 'user', 'content': text_content}
             
@@ -236,7 +128,6 @@ def create_app():
                 return jsonify({'error': f'Ollama error: {error_text}'}), ollama_response.status_code
             
             def generate():
-                content_sent = False
                 assistant_response = ""
                 
                 for line in ollama_response.iter_lines():
@@ -247,7 +138,6 @@ def create_app():
                             if 'message' in data and 'content' in data['message']:
                                 content = data['message']['content']
                                 if content:
-                                    content_sent = True
                                     assistant_response += content
                                     yield f'{json.dumps({"content": content})}\n'
                         except (json.JSONDecodeError, Exception) as e:
@@ -294,43 +184,14 @@ def create_app():
             if file.filename == '':
                 return jsonify({'error': 'No file selected'}), 400
             
-            # Get file info
-            original_filename = file.filename
-            
-            # Read file to get size
-            file_content = file.read()
-            file_size = len(file_content)
-            file.seek(0)  # Reset file pointer
-            
-            # Get MIME type
-            mime_type = file_manager.get_mime_type(original_filename)
-            
-            # Validate file
-            is_valid, error_message = file_manager.validate_file(original_filename, mime_type, file_size)
+            is_valid, error_message, file_info = file_manager.try_save_file(file)
             if not is_valid:
                 return jsonify({'error': error_message}), 400
             
-            # Generate unique filename and save
-            unique_filename = file_manager.generate_unique_filename(original_filename)
-            file_path = file_manager.save_file(file, unique_filename)
-            
             # Extract text content
-            extracted_text = TextExtractor.extract_text(file_path, mime_type)
-            
-            # Return file info
-            file_info = {
-                'id': unique_filename,
-                'original_filename': original_filename,
-                'filename': unique_filename,
-                'file_size': file_size,
-                'file_size_str': file_manager.format_file_size(file_size),
-                'mime_type': mime_type,
-                'file_path': file_path,
-                'has_text': bool(extracted_text),
-                'text_preview': extracted_text[:200] + '...' if extracted_text and len(extracted_text) > 200 else extracted_text,
-                'extracted_text': extracted_text
-            }
-            
+            extracted_text = TextExtractor.extract_text(file_info['file_path'], file_info['mime_type'])
+            file_info['extracted_text'] = extracted_text
+
             return jsonify(file_info), 200
             
         except Exception as e:
@@ -482,10 +343,10 @@ def create_app():
     @app.route('/api/settings/theme', methods=['GET'])
     def get_theme():
         """Get current theme setting"""
-        current_theme = session.get('theme', DEFAULT_THEME)
+        current_theme = session.get('theme', Themes.get_default_theme_name())
         return jsonify({
             'current_theme': current_theme,
-            'available_themes': list(THEMES.keys())
+            'available_themes': list(Themes.get_theme_keys())
         })
 
     @app.route('/api/settings/theme', methods=['POST'])
@@ -495,7 +356,7 @@ def create_app():
             data = request.json
             theme_name = data.get('theme')
             
-            if theme_name not in THEMES:
+            if theme_name not in Themes.get_theme_keys():
                 return jsonify({'error': 'Invalid theme'}), 400
             
             session['theme'] = theme_name
